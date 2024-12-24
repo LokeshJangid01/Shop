@@ -1,0 +1,47 @@
+{% extends "app/base.html" %}
+{% block title %}Produt  List{% endblock %}
+{% block content %}
+
+    
+    <div class="container text-center">
+        <div class="row p-3 mb-2 bg-success text-white">
+            <div class="col"><h1>Products</h1></div>
+        </div>
+
+        <div class="row">
+            <div class="col">
+              <h2>Name</h2>
+            </div>
+            <div class="col">
+              <h2>price</h2>
+            </div>
+            <div class="col">
+              <h2>Edit</h2>
+            </div>
+            <div class="col"><h2>Delete</h2></div>
+        </div>
+          {% for product in products %}
+            <div class="row p-2 mb-2 bg-info-subtle text-info-emphasis">
+                <div class="col">{{product.name}}</div>
+                <div class="col">${{product.price}}</div>
+                <div class="col">
+                    <button type="button" class="btn btn-info">
+                        <a href="{% url 'product_update' product.id %}" class="btn btn-info link-offset-2 link-underline-opacity-25 link-underline-opacity-100-hover">Edit</a>
+                    </button>
+                </div>
+                <div class="col">
+                    <button type="button" class="btn btn-danger">
+                        <a href="{% url 'product_delete' product.id %}" class="btn btn-danger link-offset-2 link-underline-opacity-25 link-underline-opacity-100-hover">Delete</a>
+                    </button>
+                </div>
+            </div>
+          {% endfor %}
+        
+        <button type="button" class="btn btn-warning">
+            <a href="{% url 'product_create' %}" class="nav-link">Add New Product</a>
+        </button>
+    </div>
+    
+    
+{% endblock %}
+

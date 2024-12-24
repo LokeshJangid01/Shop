@@ -1,0 +1,36 @@
+{% extends "app/base.html" %}
+{% block title %}Create Order{% endblock %}
+{% block content %}
+    
+<h1>Create Order</h1>
+<form method="post">
+    {% csrf_token %}
+    <h2>Order Details</h2>
+    {{ order_form.as_p }}
+
+    <h2>Order Items</h2>
+    {{ formset.management_form }}
+    <table>
+        <thead>
+            <tr>
+                <th>Product</th>
+                <th>Quantity</th>
+                <th>Delete</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for form in formset %}
+                <tr>
+                    <td>{{ form.product }}</td>
+                    <td>{{ form.quantity }}</td>
+                    <td>{{ form.DELETE }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <button type="submit">Save Order</button>
+</form>
+    
+{% endblock %}
+

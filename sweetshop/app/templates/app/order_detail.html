@@ -1,0 +1,168 @@
+{% extends "app/base.html" %}
+
+{% block title %}Detail Order{% endblock %}
+
+{% block content %}
+<div class="container text-center bg-info-subtle">
+    <div class="row p-3 mb-2 bg-warning-subtle text-warning-emphasis">
+      <div class="col">
+        <h2>Customer: {{ order.customer_name }}</h2>
+      </div>
+      <div class="col">
+        <h3>Total Price: $ {{ order.total_order_price }}</h3>
+      </div>
+    </div>
+    <div class="row p-3 mb-2 bg-success text-white">
+        <div class="col"><h1>Order Details</h1></div>
+    </div>
+    <div class="row bg-success text-white">
+        <div class="col"><h3>Order Items</h3></div>
+    </div>
+    <div class="row">
+      <div class="col">
+        <th>Product</th>
+      </div>
+      <div class="col">
+        <th>Quantity</th>
+      </div>
+      <div class="col">
+        <th>Total Product Price</th>
+      </div>
+      <div class="col">Actions</div>
+    </div>
+    {% for item in order_items %}
+    <div class="row p-3 mb-2 bg-info-subtle text-info-emphasis">
+        <div class="col">{{ item.product.name }}</div>
+        <div class="col">{{ item.quantity }}</div>
+        <div class="col">$ {{ item.total_product_price }}</div>
+        <div class="col">
+            <button type="button" class="btn btn-danger" onclick="deleteOrderItem( {{item.id}} )">
+                Delete
+            </button>
+        </div>
+    </div>
+    {% endfor %}
+    <!-- Add New OrderItem Form -->
+    <div class="row mt-4">
+        <div class="col">
+            <h3>Add New Order Item</h3>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col">
+            <form id="add-order-item-form">
+                <div class="row">
+                    <!-- Product Select -->
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="product" class="form-label">Product</label>
+                            <select id="product" name="product" class="form-select" required>
+                                {% for product in products %}
+                                <option value="{{ product.id }}">{{ product.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+            
+                    <!-- Quantity Input -->
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="quantity" class="form-label">Quantity</label>
+                            <input type="number" id="quantity" name="quantity" class="form-control" required>
+                        </div>
+                    </div>
+                </div>
+            
+                <!-- Hidden Order ID -->
+                <input type="hidden" id="order" name="order" value="{{ order.id }}">
+            
+                <!-- Submit Button -->
+                <div class="d-flex justify-content-end">
+                    <button type="button" class="btn btn-primary" onclick="addOrderItem()">Add Order Item</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+  </div>
+  <div class="container">
+    
+        <a href="{% url 'order_list' %}" class="btn btn-warning">Back to Order List</a>
+    
+  </div>
+  <!-- JavaScript for Deleting Items -->
+<script>
+    async function deleteOrderItem(orderItemId) {
+        const url = `http://127.0.0.1:8000/api/orderitem/${orderItemId}/`;
+        try {
+            const response = await fetch(url, {
+                method: 'DELETE',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                },
+            });
+            // if (response.ok) {
+            //     // Remove the deleted item from the DOM
+            //     document.getElementById(`order-item-${orderItemId}`).remove();
+            //     alert('Order item deleted successfully!');
+            // } else {
+            //     alert('Failed to delete the order item.');
+            // }
+        } catch (error) {
+            console.error('Error deleting order item:', error);
+            // alert('An error occurred while deleting the order item.');
+        }
+        window.location.reload();
+    }
+    console.log("hey")
+    //      Adding Items to Order
+    async function addOrderItem() {
+        const form = document.getElementById('add-order-item-form');
+        const url = 'http://127.0.0.1:8000/api/orderitem/';
+        const formData = new FormData(form);
+
+        const data = {
+            product: formData.get('product'),
+            quantity: formData.get('quantity'),
+            order: formData.get('order'),
+        };
+
+        try {
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}',
+                },
+                body: JSON.stringify(data),
+            });
+            window.location.reload();
+            
+        } catch (error) {
+            console.error('Error adding order item:', error);
+            // alert('An error occurred while adding the order item.');
+        }
+    }
+    // function updateOrderItemsList(item) {
+    //     const orderItemsContainer = document.querySelector('.container.text-center.bg-info-subtle');
+
+    //     // Create a new row for the added item
+    //     const newRow = document.createElement('div');
+    //     newRow.className = 'row p-3 mb-2 bg-info-subtle text-info-emphasis';
+    //     newRow.id = `order-item-${item.id}`;
+    //     newRow.innerHTML = `
+    //         <div class="col">${item.product.name}</div>
+    //         <div class="col">${item.quantity}</div>
+    //         <div class="col">$ ${item.total_product_price}</div>
+    //         <div class="col">
+    //             <button type="button" class="btn btn-danger" onclick="deleteOrderItem(${item.id})">
+    //                 Delete
+    //             </button>
+    //         </div>
+    //     `;
+
+    //     // Append the new row to the order items container
+    //     orderItemsContainer.appendChild(newRow);
+    // }
+</script>
+{% endblock %}

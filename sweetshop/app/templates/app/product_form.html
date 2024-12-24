@@ -1,0 +1,17 @@
+{% extends "app/base.html" %}
+{% block title %}Product Form{% endblock %}
+{% block content %}
+<div class="container">
+    <h2>Create/Update Product</h2>
+    <form method="post">
+        {% csrf_token %}
+        <div class="container">
+            {{ form.as_p }}
+            <button class="btn btn-success" type="submit">Save</button>
+        </div> 
+    </form>
+    <button type="button" class="btn btn-warning mt-2">
+        <a href="{% url 'product_list' %}" class="nav-link">Back to Product</a>
+    </button>
+</div>
+{% endblock %}
