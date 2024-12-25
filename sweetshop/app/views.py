@@ -46,6 +46,10 @@ class OrderListView(ListView):
     template_name = 'app/order_list.html'
     context_object_name = 'orders'
 
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        return queryset.order_by('-created_at')
+
 class OrderCreateView(CreateView):    
     model = Order
     form_class = OrderForm
@@ -72,7 +76,6 @@ class OrderDetailView(DetailView):
         context = super().get_context_data(**kwargs)
         context['order_items'] = self.object.orderitem_set.all()
         context['products'] = Product.objects.all()
-        print(context['order_items'].values())
         return context
     
 #############

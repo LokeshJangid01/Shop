@@ -1,0 +1,39 @@
+{% extends "app/base.html" %}
+{% block title %}Produt  List{% endblock %}
+{% block content %}
+<div class="container text-center">
+  <div class="row p-3 mb-2 bg-success text-white">
+      <div class="col"><h1>Orders</h1></div>
+  </div>
+Lokesh jangid
+  <div class="row">
+      <div class="col">
+        <h2>Name</h2>
+      </div>
+      <div class="col">
+        <h2>Total Order Price</h2>
+      </div>
+      <div class="col"><h2>Print Bill</h2></div>
+      
+  </div>
+  {% for order in orders %}
+      <div class="row p-2 mb-2 bg-info-subtle text-info-emphasis">
+          <div class="col">{{order.customer_name}}</div>
+          <div class="col">${{order.total_order_price}}</div>
+          <div class="col">
+            
+            <a href="{% url 'orders_bill' order.id %}" class="btn btn-success">Print</a>
+        
+        </div>
+          
+          
+      </div>
+    {% endfor %}
+  
+  
+</div>
+    
+    
+    
+{% endblock %}
+
