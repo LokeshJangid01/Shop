@@ -11,7 +11,10 @@ from datetime import datetime
 import io
 from django.http import FileResponse
 from reportlab.pdfgen import canvas
-from reportlab.lib.pagesizes import letter, A4
+from reportlab.lib.pagesizes import letter
+from reportlab.lib import colors
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle
+from reportlab.lib.units import inch
 
 # Create your views here.
 
@@ -72,7 +75,7 @@ def reportlabview(request ,*args, **kwargs):
     y_start = 750  # Vertical starting position (from top of the page)
     line_height = 20  # Space between lines
 
-     # Add header
+    # Add header
     p.setFont("Helvetica-Bold", 14)
     p.drawString(x_start, y_start, "Order Details")
     y_start -= line_height
@@ -80,6 +83,8 @@ def reportlabview(request ,*args, **kwargs):
     # Add order information
     p.setFont("Helvetica", 12)
     p.drawString(x_start, y_start, f"Customer Name: {order.customer_name}")
+    y_start -= line_height
+    p.drawString(x_start, y_start, f"Total Order Price: {order.total_order_price}")
     y_start -= line_height
     p.drawString(x_start, y_start, f"Date: {current_datetime.strftime('%Y-%m-%d %H:%M:%S')}")
     y_start -= (line_height * 2)  # Add extra space before item list
@@ -105,16 +110,6 @@ def reportlabview(request ,*args, **kwargs):
         p.drawString(x_start + 400, y_start, f"{item.total_product_price:.2f}")
         y_start -= line_height
 
-    # Add a total line
-    if y_start < 50:  # Check if we need a new page for the total
-        p.showPage()
-        y_start = 750
-
-    p.setFont("Helvetica-Bold", 12)
-    y_start -= line_height
-    p.drawString(x_start, y_start, "Total Order Price:")
-    p.drawString(x_start + 400, y_start, f"{order.total_order_price:.2f}")
-
     
 
     # Close the PDF object cleanly, and we're done.
@@ -125,3 +120,87 @@ def reportlabview(request ,*args, **kwargs):
     # present the option to save the file.
     buffer.seek(0)
     return FileResponse(buffer, as_attachment=True, filename="hello.pdf")
+
+def reportlabtableview(request, *args, **kwargs):
+    pk = kwargs.get('pk')
+    order = get_object_or_404(Order, pk=pk)
+    order_items = order.orderitem_set.all()
+    current_datetime = datetime.now()
+
+    # Create a file-like buffer to receive PDF data.
+    buffer = io.BytesIO()
+
+    # Create the PDF object using SimpleDocTemplate
+    doc = SimpleDocTemplate(buffer, pagesize=letter)
+    elements = []
+
+    # Title and Order Info
+    elements.append(Table(
+        [[f"Order Details for {order.customer_name}"]],
+        colWidths=[450],
+        style=[
+            ("BACKGROUND", (0, 0), (-1, 0), colors.grey),
+            ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke),
+            ("ALIGN", (0, 0), (-1, 0), "CENTER"),
+            ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+            ("FONTSIZE", (0, 0), (-1, 0), 14),
+            ("BOTTOMPADDING", (0, 0), (-1, 0), 12),
+        ],
+    ))
+    elements.append(Table(
+        [[
+            f"Date: {current_datetime.strftime('%Y-%m-%d %H:%M:%S')}",
+            f"Total Order Price: {order.total_order_price:.2f}"
+        ]],
+        colWidths=[225, 225],
+        style=[
+            ("ALIGN", (0, 0), (-1, -1), "LEFT"),
+            ("FONTNAME", (0, 0), (-1, -1), "Helvetica"),
+            ("FONTSIZE", (0, 0), (-1, -1), 12),
+            ("BOTTOMPADDING", (0, 0), (-1, -1), 10),
+        ],
+    ))
+
+    # Header Row for Table
+    data = [["Product Name", "Price", "Quantity", "Total"]]
+
+    # Add Order Items to Table
+    for item in order_items:
+        data.append([
+            item.product.name,
+            f"{item.product.price:.2f}",
+            f"{item.quantity}",
+            f"{item.total_product_price:.2f}",
+        ])
+
+    # Add Total Row
+    data.append(["", "", "Total Order Price:", f"{order.total_order_price:.2f}"])
+
+    # Create the Table
+    table = Table(data, colWidths=[200, 80, 80, 100])
+
+    # Add Styling to Table
+    table.setStyle(TableStyle([
+        ("BACKGROUND", (0, 0), (-1, 0), colors.grey),
+        ("TEXTCOLOR", (0, 0), (-1, 0), colors.whitesmoke),
+        ("ALIGN", (1, 0), (-1, -1), "CENTER"),
+        ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+        ("BOTTOMPADDING", (0, 0), (-1, 0), 12),
+        ("GRID", (0, 0), (-1, -1), 1, colors.black),
+        ("FONTNAME", (0, 0), (-1, -1), "Helvetica"),
+        ("FONTSIZE", (0, 0), (-1, -1), 10),
+        ("BACKGROUND", (0, 1), (-1, -1), colors.beige),
+    ]))
+
+    # Add Table to Elements
+    elements.append(table)
+
+    # Build PDF
+    doc.build(elements)
+
+    # Return the PDF Response
+    buffer.seek(0)
+    # return FileResponse(buffer, as_attachment=True, filename="order_details.pdf")
+    response = HttpResponse(buffer, content_type="application/pdf")
+    response['Content-Disposition'] = 'inline; filename="order_details.pdf"'
+    return response
