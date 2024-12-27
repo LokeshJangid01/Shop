@@ -14,17 +14,25 @@ Lokesh jangid
         <h2>Total Order Price</h2>
       </div>
       <div class="col"><h2>Print Bill</h2></div>
+      <div class="col"><h2>Print Reportlab Bill</h2></div>
       
   </div>
   {% for order in orders %}
       <div class="row p-2 mb-2 bg-info-subtle text-info-emphasis">
           <div class="col">{{order.customer_name}}</div>
           <div class="col">${{order.total_order_price}}</div>
+           
           <div class="col">
             
             <a href="{% url 'orders_bill' order.id %}" class="btn btn-success">Print</a>
         
-        </div>
+          </div>
+        
+          <div class="col">
+            
+            <a href="{% url 'reportlab' order.id %}" class="btn btn-success">Print Report Lab</a>
+        
+          </div>
           
           
       </div>
